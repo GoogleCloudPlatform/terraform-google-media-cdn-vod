@@ -117,7 +117,7 @@ resource "google_storage_bucket" "vod_serving" {
 }
 
 resource "google_network_services_edge_cache_origin" "default" {
-  name           = "vod-origin"
+  name           = "vod-origin-${random_id.suffix.hex}"
   origin_address = google_storage_bucket.vod_serving.url
   max_attempts   = 2
   labels         = var.labels
@@ -130,7 +130,7 @@ resource "google_network_services_edge_cache_origin" "default" {
 }
 
 resource "google_network_services_edge_cache_service" "default" {
-  name   = "vod-service"
+  name   = "vod-service-${random_id.suffix.hex}"
   labels = var.labels
 
   routing {
