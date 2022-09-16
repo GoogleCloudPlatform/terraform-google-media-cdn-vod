@@ -29,10 +29,6 @@ data "google_project" "project" {
 }
 
 resource "random_id" "suffix" {
-  keepers = {
-    # Generate a new id when project changes
-    project = var.project_id
-  }
   byte_length = 2
 }
 
