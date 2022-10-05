@@ -14,16 +14,6 @@
 
 # Random suffix tied to project -- used on resources with global naming
 
-provider "google" {
-  project = var.project_id
-  region  = var.region
-}
-
-provider "google-beta" {
-  project = var.project_id
-  region  = var.region
-}
-
 data "google_project" "project" {
   project_id = var.project_id
 }
@@ -67,36 +57,34 @@ module "project_services" {
 
 resource "google_project_service_identity" "service_identities" {
   provider = google-beta
+  project  = module.project_services.project_id
 
   for_each = toset([
     "transcoder.googleapis.com",
   ])
   service = each.value
-
-  depends_on = [module.project_services]
 }
 
 resource "google_storage_bucket" "gcf_source" {
   name                        = "gcf-source-${random_id.suffix.hex}"
+  project                     = module.project_services.project_id
   location                    = var.region
   force_destroy               = false
   uniform_bucket_level_access = true
   labels                      = var.labels
-
-  depends_on = [module.project_services]
 }
 
 resource "google_storage_bucket" "vod_upload" {
   name                        = "vod-upload-${random_id.suffix.hex}"
+  project                     = module.project_services.project_id
   location                    = var.region
   force_destroy               = false
   uniform_bucket_level_access = true
   labels                      = var.labels
-
-  depends_on = [module.project_services]
 }
 resource "google_storage_bucket" "vod_serving" {
   name                        = "vod-serving-${random_id.suffix.hex}"
+  project                     = module.project_services.project_id
   location                    = var.region
   force_destroy               = true
   uniform_bucket_level_access = true
@@ -108,12 +96,11 @@ resource "google_storage_bucket" "vod_serving" {
     method          = ["GET", "HEAD"]
     max_age_seconds = 3600
   }
-
-  depends_on = [module.project_services]
 }
 
 resource "google_network_services_edge_cache_origin" "default" {
   name           = "vod-origin-${random_id.suffix.hex}"
+  project        = module.project_services.project_id
   origin_address = google_storage_bucket.vod_serving.url
   max_attempts   = 2
   labels         = var.labels
@@ -121,13 +108,12 @@ resource "google_network_services_edge_cache_origin" "default" {
   timeout {
     connect_timeout = "10s"
   }
-
-  depends_on = [module.project_services]
 }
 
 resource "google_network_services_edge_cache_service" "default" {
-  name   = "vod-service-${random_id.suffix.hex}"
-  labels = var.labels
+  name    = "vod-service-${random_id.suffix.hex}"
+  project = module.project_services.project_id
+  labels  = var.labels
 
   routing {
     host_rule {
@@ -157,56 +143,49 @@ resource "google_network_services_edge_cache_service" "default" {
       }
     }
   }
-
-  depends_on = [module.project_services]
 }
 
 resource "google_storage_bucket_iam_member" "media_edge" {
   bucket = google_storage_bucket.vod_serving.name
   role   = "roles/storage.objectViewer"
   member = "serviceAccount:${local.mediaedgefill_email}"
-
-  depends_on = [module.project_services]
 }
 
 # Allow the google storage service account to publish to Eventarc pubsub
 resource "google_project_iam_member" "gcs-pubsub-publishing" {
-  project = var.project_id
+  project = module.project_services.project_id
   role    = "roles/pubsub.publisher"
   member  = "serviceAccount:${data.google_storage_project_service_account.gcs_account.email_address}"
-
-  depends_on = [module.project_services]
 }
 
 resource "google_service_account" "transcode_sa" {
   account_id   = "transcode-sa"
+  project      = module.project_services.project_id
   display_name = <<-EOT
   Service account used by both the Transcode Cloud Function and Eventarc trigger
   EOT
-
-  depends_on = [module.project_services]
 }
 
 resource "google_project_iam_member" "invoking" {
-  project = var.project_id
+  project = module.project_services.project_id
   role    = "roles/run.invoker"
   member  = "serviceAccount:${google_service_account.transcode_sa.email}"
 }
 
 resource "google_project_iam_member" "event-receiving" {
-  project = var.project_id
+  project = module.project_services.project_id
   role    = "roles/eventarc.eventReceiver"
   member  = "serviceAccount:${google_service_account.transcode_sa.email}"
 }
 
 resource "google_project_iam_member" "artifactregistry-reader" {
-  project = var.project_id
+  project = module.project_services.project_id
   role    = "roles/artifactregistry.reader"
   member  = "serviceAccount:${google_service_account.transcode_sa.email}"
 }
 
 resource "google_project_iam_member" "transcoder" {
-  project = var.project_id
+  project = module.project_services.project_id
   role    = "roles/transcoder.admin"
   member  = "serviceAccount:${google_service_account.transcode_sa.email}"
 }
@@ -217,7 +196,7 @@ data "archive_file" "ingestion" {
   output_path = "${path.module}/build/ingestion.zip"
 }
 
-# upload he ingestion function source zipfile to cloud storage
+# upload the ingestion function source zipfile to cloud storage
 resource "google_storage_bucket_object" "ingestion_source" {
   name   = "ingestion.zip"
   source = data.archive_file.ingestion.output_path
@@ -229,11 +208,14 @@ resource "google_storage_bucket_object" "test_video" {
   source = "smpte.mp4"
   bucket = google_storage_bucket.vod_upload.name
 
-  depends_on = [google_cloudfunctions2_function.vod_ingestion]
+  depends_on = [
+    google_cloudfunctions2_function.vod_ingestion,
+  ]
 }
 
 resource "google_cloudfunctions2_function" "vod_ingestion" {
   provider    = google-beta
+  project     = module.project_services.project_id
   location    = var.region
   name        = "vod-ingestion"
   description = <<-EOT
@@ -267,7 +249,6 @@ resource "google_cloudfunctions2_function" "vod_ingestion" {
     ingress_settings               = "ALLOW_INTERNAL_ONLY"
     all_traffic_on_latest_revision = true
     service_account_email          = google_service_account.transcode_sa.email
-
   }
 
   event_trigger {
@@ -282,7 +263,6 @@ resource "google_cloudfunctions2_function" "vod_ingestion" {
   }
 
   depends_on = [
-    module.project_services,
     google_project_iam_member.event-receiving,
     google_project_iam_member.artifactregistry-reader,
   ]
