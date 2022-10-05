@@ -213,8 +213,8 @@ resource "google_project_iam_member" "transcoder" {
 
 data "archive_file" "ingestion" {
   type        = "zip"
-  source_dir  = "${path.root}/source/ingestion"
-  output_path = "${path.root}/build/ingestion.zip"
+  source_dir  = "${path.module}/source/ingestion"
+  output_path = "${path.module}/build/ingestion.zip"
 }
 
 # upload he ingestion function source zipfile to cloud storage
