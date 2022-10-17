@@ -115,6 +115,8 @@ resource "google_network_services_edge_cache_service" "default" {
   project = module.project_services.project_id
   labels  = var.labels
 
+  edge_security_policy = google_compute_security_policy.edgepolicy.name
+
   routing {
     host_rule {
       hosts        = ["*"]
