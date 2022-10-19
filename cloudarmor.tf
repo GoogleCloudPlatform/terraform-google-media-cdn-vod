@@ -24,14 +24,26 @@ resource "google_compute_security_policy" "edgepolicy" {
     preview  = false
     match {
       expr {
-        expression = "origin.region_code == 'CN' && origin.region_code == 'RU'"
+        expression = "origin.region_code == 'GB'"
       }
     }
-    description = "Block users from specific countries"
+    description = "Deny access from GB (Great Britain)"
+  }
+  rule {
+    action   = "deny(403)"
+    priority = "7001"
+    preview  = false
+    match {
+      expr {
+        expression = "origin.region_code == 'FR'"
+      }
+    }
+    description = "Deny access from FR (France)"
   }
   rule {
     action   = "allow"
     priority = "2147483647"
+    preview  = false
     match {
       versioned_expr = "SRC_IPS_V1"
       config {
