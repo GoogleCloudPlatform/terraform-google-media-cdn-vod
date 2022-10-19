@@ -29,6 +29,16 @@ data "google_storage_project_service_account" "gcs_account" {
 locals {
   # mediaedge doesn't yet support google_project_service_identity
   mediaedgefill_email = "service-${data.google_project.project.number}@gcp-sa-mediaedgefill.iam.gserviceaccount.com"
+  index_html = templatefile("${path.module}/source/index.html.tftpl", {
+    test_video_name           = google_storage_bucket_object.test_video.name,
+    test_video_name_short     = trimsuffix(google_storage_bucket_object.test_video.name, ".mp4"),
+    vod_upload_bucket         = google_storage_bucket.vod_upload.name,
+    vod_upload_bucket_urlenc  = urlencode(google_storage_bucket.vod_upload.name),
+    vod_serving_bucket        = google_storage_bucket.vod_serving.name,
+    vod_serving_bucket_urlenc = urlencode(google_storage_bucket.vod_serving.name),
+    project_id_urlenc         = urlencode(var.project_id),
+    media_cdn_ipv4            = google_network_services_edge_cache_service.default.ipv4_addresses[0],
+  })
 }
 
 module "project_services" {
@@ -206,13 +216,21 @@ resource "google_storage_bucket_object" "ingestion_source" {
 }
 
 resource "google_storage_bucket_object" "test_video" {
-  name   = "smpte.mp4"
-  source = "smpte.mp4"
-  bucket = google_storage_bucket.vod_upload.name
+  name         = "smpte.mp4"
+  bucket       = google_storage_bucket.vod_upload.name
+  source       = "smpte.mp4"
+  content_type = "video/mp4"
 
   depends_on = [
     google_cloudfunctions2_function.vod_ingestion,
   ]
+}
+
+resource "google_storage_bucket_object" "index_html" {
+  name         = "index.html"
+  bucket       = google_storage_bucket.vod_serving.name
+  content      = local.index_html
+  content_type = "text/html"
 }
 
 resource "google_cloudfunctions2_function" "vod_ingestion" {

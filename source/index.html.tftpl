@@ -1,0 +1,72 @@
+<html>
+
+<head>
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+</head>
+
+<body>
+    <p><span style="color: #4688f1;"><strong>VOD on Google Cloud Solution</strong></span>
+    </p>
+    <p>Congratulations for having deployed the VOD solution on Google Cloud!</p>
+    <p>At this point all the solution modules have been deployed and the environment is
+        ready for you to use.</p>
+    <p>Before you upload your own video files to the catalog, you will want to make sure
+        the environment is fully functional. We&rsquo;ve uploaded a test video file -
+        <strong><em>${test_video_name}</em></strong> - into the <a
+            href="https://console.cloud.google.com/storage/browser/${vod_upload_bucket_urlenc};tab=objects?forceOnBucketsSortingFiltering=false&project=${project_id_urlenc}$P&prefix=&forceOnObjectsSortingFiltering=false"
+            target="_blank" rel="noopener">${vod_upload_bucket}</a> bucket. The test
+        video file was transcoded to HLS + MPEG-Dash via the Transcoder API. The
+        resulting transcoded files are stored and served from the <strong><em><a
+                    href="https://console.cloud.google.com/storage/browser/${vod_serving_bucket_urlenc};tab=objects?forceOnBucketsSortingFiltering=false&project=${project_id_urlenc}$P&prefix=&forceOnObjectsSortingFiltering=false"
+                    target="_blank"
+                    rel="noopener">${vod_serving_bucket}</a></em></strong> bucket. </p>
+    <p>In order to stream the HLS or MPEG-ash video files you will have several options:
+    </p>
+    <ul>
+        <li>You can install the <a
+                href="https://chrome.google.com/webstore/detail/native-mpeg-dash-%20-hls-pl/cjfbmleiaobegagekpmlhmaadepdeedn?hl=en"
+                target="_blank" rel="noopener">Native MPEG-Dash + HLS Playback
+                extension</a> in Chrome. Once done, you can stream the HLS video file
+            directly in Chrome via
+            <strong><em>http://${media_cdn_ipv4}/${test_video_name_short}/manifest.m3u8</em></strong>.
+            Just copy/paste the URL into the Chrome search bar.</li>
+        <li>You can install a video player on your desktop and use it to stream the
+            transcoded files. We recommend that you <a
+                href="https://www.videolan.org/vlc/" target="_blank"
+                rel="noopener">download and install the VLC Video Player</a>. Once
+            installed you can stream the HLS video file by going to the
+            &ldquo;File&rdquo; &gt; &ldquo;Open Network&hellip;&rdquo; menu in VLC and
+            paste the
+            <strong><em>http://${media_cdn_ipv4}/${test_video_name_short}/manifest.m3u8</em></strong>
+            of the video file. </li>
+    </ul>
+    <p>The URL of the HLS file is built as follows:</p>
+    <p>http://<span style="color: #4688f1;">${media_cdn_ipv4}</span>/<span
+            style="color: #ff9900;">filename</span>/manifest.m3u8</p>
+    <p>We use the name of the video file to create a sub-folder in the bucket called
+        <span style="color: #ff9900;">filename</span> (without video extension). </p>
+    <p>Once you have verified that the test video file was transcoded and that you can
+        stream it, you can add your own video files to the VOD catalog, by uploading them
+        to the <strong><em><a
+                    href="https://console.cloud.google.com/storage/browser/${vod_upload_bucket_urlenc};tab=objects?forceOnBucketsSortingFiltering=false&project=${project_id_urlenc}$P&prefix=&forceOnObjectsSortingFiltering=false"
+                    target="_blank"
+                    rel="noopener">${vod_upload_bucket}</a></em></strong>. Click on
+        &ldquo;Upload Files&rdquo; and select the video file you want to upload.</p>
+    <p>Once uploaded, wait for a few minutes for the files to be transcoded and you can
+        stream it using one the methods described above. Replace <span
+            style="color: #ff9900;">&lt;filename&gt;</span> (without extension) in the
+        URL above with the filename of the file you uploaded to build the streaming URL.
+    </p>
+    <p>Want to learn more about the Google Cloud products used to build the VOD solution?
+        Please visit the following product pages on the Google Cloud website:</p>
+    <ul>
+        <li><a href="https://cloud.google.com/media-cdn" target="_blank"
+                rel="noopener">Media CDN product page</a>,</li>
+        <li><a href="https://cloud.google.com/transcoder/docs" target="_blank"
+                rel="noopener">Transcoder API product page</a>,</li>
+        <li><a href="https://cloud.google.com/storage" target="_blank"
+                rel="noopener">Cloud Storage product page</a>. </li>
+    </ul>
+</body>
+
+</html>
