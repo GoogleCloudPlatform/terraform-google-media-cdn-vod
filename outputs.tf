@@ -26,3 +26,8 @@ output "media_cdn_ipv4" {
   description = "The Media CDN serving address"
   value       = google_network_services_edge_cache_service.default.ipv4_addresses[0]
 }
+
+output "media_cdn_index" {
+  description = "VOD landing page URL"
+  value       = "http://${google_network_services_edge_cache_service.default.ipv4_addresses[0]}/index.html"
+}
