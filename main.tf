@@ -171,7 +171,7 @@ resource "google_project_iam_member" "gcs-pubsub-publishing" {
 }
 
 resource "google_service_account" "transcode_sa" {
-  account_id   = "transcode-sa"
+  account_id   = "transcode-sa-${random_id.suffix.hex}"
   project      = module.project_services.project_id
   display_name = <<-EOT
   Service account used by both the Transcode Cloud Function and Eventarc trigger
@@ -237,7 +237,7 @@ resource "google_cloudfunctions2_function" "vod_ingestion" {
   provider    = google-beta
   project     = module.project_services.project_id
   location    = var.region
-  name        = "vod-ingestion"
+  name        = "vod-ingestion-${random_id.suffix.hex}"
   description = <<-EOT
   Cloud function that invokes a Transcode API job on objects added to
   vod_upload bucket
