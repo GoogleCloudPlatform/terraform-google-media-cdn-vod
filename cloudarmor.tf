@@ -14,7 +14,7 @@
 
 resource "google_compute_security_policy" "edgepolicy" {
   project     = module.project_services.project_id
-  name        = "edgepolicy"
+  name        = "vod-edgepolicy-${random_id.suffix.hex}"
   description = "edge rules"
   type        = "CLOUD_ARMOR_EDGE"
 
