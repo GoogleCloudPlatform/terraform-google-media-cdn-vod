@@ -46,6 +46,7 @@ module "media_cdn_vod" {
 
 | Name | Description |
 |------|-------------|
+| media\_cdn\_index | VOD landing page URL |
 | media\_cdn\_ipv4 | The Media CDN serving address |
 | serving\_bucket | The VOD serving bucket and Media CDN origin |
 | upload\_bucket | The VOD upload bucket |
